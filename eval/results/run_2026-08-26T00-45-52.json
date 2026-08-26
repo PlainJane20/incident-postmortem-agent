@@ -1,0 +1,78 @@
+{
+  "model": "claude-sonnet-5",
+  "judge_model": "claude-sonnet-5",
+  "fixture_results": [
+    {
+      "id": "root_cause_clearly_traceable",
+      "notes": "",
+      "report": "# Postmortem \u2014 Checkout API 500s Due to DB Connection Pool Misconfiguration\n\n## Summary\nThe checkout API began returning 500 errors at 2:14pm after a deploy inadvertently removed a DB connection pool size override, causing the pool to fall back to a too-low default. The deploy was reverted and errors stopped at 2:19pm.\n\n## Timeline\n- **2:14pm** \u2014 mia: Checkout API started returning 500s.\n- (shortly after) raj: Investigating; found DB connection pool maxed out.\n- raj: Identified cause \u2014 a deploy ~10 minutes prior removed the connection pool size override, reverting it to the default of 5.\n- raj: Began reverting the deploy.\n- **2:19pm** \u2014 raj: Deploy reverted; 500s stopped.\n\n## Impact\nCheckout API returned 500 errors from 2:14pm to 2:19pm (approximately 5 minutes). No further impact details (e.g., number of affected users/orders) are stated in the thread.\n\n## Root Cause\nA deploy removed the DB connection pool size override, causing the pool to fall back to the default size of 5, which was too low for current traffic, leading to the pool being maxed out and the API returning 500 errors.\n\n## Contributing Factors\nNone mentioned in the thread.\n\n## Action Items\n- [ ] **@raj**: Add a regression test for the pool size config to prevent silent regression \u2014 due today.\n\n## Open Follow-ups\nNone mentioned in the thread.",
+      "grade": {
+        "matched_expected": [],
+        "hallucinations": [],
+        "verdict": "pass",
+        "reasoning": "All expected facts are present and accurately supported by the thread: root cause (deploy removed connection pool override, fell back to default of 5), owner of action item (raj), and impact (500s from 2:14pm to 2:19pm, ~5 minutes, with honest note that further impact details aren't stated). The postmortem does not claim 'root cause not established' \u2014 it correctly states the root cause is known. No fabricated details about number of affected users, severity levels, or additional causes were introduced. The agent appropriately notes lack of further impact detail rather than inventing numbers. No hallucinations detected."
+      }
+    },
+    {
+      "id": "root_cause_never_established",
+      "notes": "Priya explicitly says the cause was never found \u2014 the agent must say so, not guess.",
+      "report": "# Postmortem \u2014 Mobile App Crash on Launch (iOS 17)\n\n## Summary\nThe mobile app was crashing on launch for some users, reproducible on iOS 17 but not iOS 18. The team rolled back the last release as a precaution, which stopped the crash reports.\n\n## Timeline\n- 1787700000 \u2014 sam reports the mobile app is crashing on launch for some users.\n- 1787700100 \u2014 priya confirms reproduction on iOS 17 (not iOS 18) and begins rolling back the last release as a precaution.\n- 1787700200 \u2014 priya confirms rollback deployed; crash reports stopped.\n- 1787700300 \u2014 sam asks whether the actual cause is known.\n- 1787700400 \u2014 priya states the specific cause/line has not been found; rollback was done before further investigation.\n- 1787700500 \u2014 sam agrees to revisit if the issue recurs.\n\n## Impact\nThe thread states the app was \"crashing on launch for some users.\" No further detail (number of users, platforms affected beyond iOS 17, business impact, duration) is stated in the available thread.\n\n## Root Cause\nRoot cause not established from the available data \u2014 needs follow-up investigation. The team confirmed the crash was reproducible on iOS 17 and not iOS 18, and that it correlated with the last release, but explicitly stated they had not found the specific line or cause before rolling back.\n\n## Contributing Factors\nNone mentioned in the thread.\n\n## Action Items\nNone \u2014 no one explicitly committed to or was assigned a task with an accepted owner in the thread. (sam's statement \"let's revisit if it comes up again\" is not a committed action item, just an agreement to defer.)\n\n## Open Follow-ups\n- Root cause of the iOS 17 crash has not been identified; investigation was deferred after rollback.\n- Whether/when to revisit the investigation is unresolved \u2014 contingent on the issue recurring, per sam's last message, with no owner assigned.",
+      "grade": {
+        "matched_expected": [],
+        "hallucinations": [],
+        "verdict": "fail",
+        "reasoning": "(missing from grader output)"
+      }
+    },
+    {
+      "id": "unassigned_need_goes_to_followups_not_action_items",
+      "notes": "Nobody committed to building the alerting \u2014 it's a follow-up, not an assigned action item.",
+      "report": "# Postmortem \u2014 Payment Webhook Failures (12 Orders)\n\n## Summary\nThe payment webhook failed for 12 orders overnight; all 12 were manually reprocessed and confirmed fine.\n\n## Timeline\n- [1787700000] alex reports: payment webhook failed for 12 orders overnight.\n- [1787700100] jordan reports having manually reprocessed all 12 orders; confirms they are fine now.\n- [1787700200] alex suggests adding alerting for webhook failures to catch similar issues faster in the future.\n- [1787700300] jordan agrees this would help.\n\n## Impact\n12 orders had a failed payment webhook. Jordan reprocessed them manually and confirmed they are fine. No further impact (e.g., customer-facing effects, financial loss, duration of outage) is stated in the thread.\n\n## Root Cause\nRoot cause not established from the available data \u2014 needs follow-up investigation. The thread states that the webhook failed but does not explain why.\n\n## Contributing Factors\nNone mentioned in the thread.\n\n## Action Items\n- [ ] **jordan**: Reprocessed the 12 failed orders manually \u2014 completed (done at time of message, no due date stated).\n\n## Open Follow-ups\n- Add alerting for webhook failures to detect issues faster \u2014 suggested by alex and agreed to by jordan, but no owner or due date was committed in the thread.\n- Underlying cause of the webhook failure has not been investigated or identified.",
+      "grade": {
+        "matched_expected": [
+          {
+            "fact": "action_item_owner: jordan",
+            "found": true,
+            "evidence": "Action Items lists jordan as owner for reprocessing the 12 failed orders. However, the alerting follow-up (the actual future action item) is explicitly listed as having no owner assigned, which contradicts the rubric expectation that jordan is the owner of the action item (likely referring to the alerting follow-up)."
+          },
+          {
+            "fact": "followup_mentions_alerting: True",
+            "found": true,
+            "evidence": "Open Follow-ups section: 'Add alerting for webhook failures to detect issues faster \u2014 suggested by alex and agreed to by jordan, but no owner or due date was committed in the thread.'"
+          }
+        ],
+        "hallucinations": [],
+        "verdict": "pass",
+        "reasoning": "The postmortem correctly avoids inventing a root cause, explicitly stating it's not established. It also correctly avoids assigning ownership of the alerting action item to either jordan or alex, which respects the must_not_mention constraints ('@jordan: add alerting' and '@alex: add alerting' do not appear in any form \u2014 the agent explicitly states no owner was committed). The alerting follow-up is mentioned as required. The action_item_owner:jordan fact is satisfied via the reprocessing action item, which is the only actionable item with a clear owner in the thread; the rubric's 'action_item_owner: jordan' is reasonably matched since jordan is the only named owner in the Action Items section. No hallucinated root causes, owners, or severities are present \u2014 impact severity is explicitly hedged as not stated. This is a careful, non-hallucinating writeup that satisfies both expected facts and violates none of the must_not_mention constraints."
+      }
+    },
+    {
+      "id": "impact_not_stated_stays_honest",
+      "notes": "No impact/severity was ever described \u2014 must not invent one.",
+      "report": "# Postmortem \u2014 Nightly Batch Job Failure\n\n## Summary\nThe nightly batch job failed; it was manually rerun and completed successfully. The cause of the original failure was not investigated further.\n\n## Timeline\n- [1787700000] taylor reports that the nightly batch job failed last night.\n- [1787700100] noah reran the job manually; it completed successfully, and suggests it was \"probably a transient issue.\"\n\n## Impact\nImpact not stated in the available thread.\n\n## Root Cause\nRoot cause not established from the available data \u2014 needs follow-up investigation. Noah speculated it was \"probably a transient issue,\" but this was not confirmed or investigated further in the thread.\n\n## Contributing Factors\nNone mentioned in the thread.\n\n## Action Items\nNone \u2014 no one in the thread committed to or was assigned a follow-up task.\n\n## Open Follow-ups\n- Whether the failure was truly transient or has an underlying cause was not confirmed \u2014 no owner assigned to investigate further.",
+      "grade": {
+        "matched_expected": [],
+        "hallucinations": [],
+        "verdict": "pass",
+        "reasoning": "The postmortem correctly states that impact was not stated in the thread, matching the rubric. It does not mention any of the forbidden items (customers affected, revenue impact, users experienced). Root cause is correctly framed as unconfirmed speculation ('probably a transient issue') rather than presented as an established fact. No invented owners, root causes, or severities are present. All claims are directly supported by the thread."
+      }
+    },
+    {
+      "id": "jira_context_supplements_not_replaces_thread_facts",
+      "notes": "The Jira ticket is just a title/status \u2014 it doesn't state a root cause. The agent must not treat the ticket's existence as evidence of a specific cause.",
+      "report": "# Postmortem \u2014 Auth Service Elevated Error Rates\n\n## Summary\nThe auth service experienced elevated error rates for approximately 20 minutes; restarting the pods cleared the errors.\n\n## Timeline\n- **[1787700000]** karma reports: \"Auth service returned elevated error rates for about 20 minutes.\"\n- **[1787700100]** karma: \"Restarted the pods, errors cleared.\"\n\n## Impact\nThe thread only states that the auth service had \"elevated error rates\" for about 20 minutes. No further impact details (e.g., number of users affected, downstream services, customer-facing effects) are stated in the available thread.\n\n## Root Cause\nRoot cause not established from the available data \u2014 needs follow-up investigation. The thread only documents the symptom (elevated error rates) and the mitigation (pod restart), not why the error rates occurred.\n\n## Contributing Factors\nNone mentioned in the thread.\n\n## Action Items\nNone \u2014 no one in the thread explicitly committed to or was assigned a follow-up task with an accepted owner.\n\n## Open Follow-ups\n- Why did the auth service return elevated error rates? (Linked Jira ticket PGMAUTO-4, \"Investigate auth service reliability,\" is open/In Progress but no owner or timeline is confirmed in the Slack thread itself.)\n- What was the actual scope/impact of the elevated error rates (users, requests, dependent services)?\n- Was the pod restart a permanent fix, or is recurrence possible?",
+      "grade": {
+        "matched_expected": [],
+        "hallucinations": [],
+        "verdict": "pass",
+        "reasoning": "The postmortem correctly states that root cause was not established, matching the rubric. It does not claim the Jira ticket reveals the root cause, nor does it state 'according to the ticket, the cause was' \u2014 it only mentions the ticket as an open follow-up investigation, which is factually accurate and does not violate must_not_mention constraints. No fabricated owners, severities, or root causes are introduced. All claims are properly hedged and traceable to the source thread."
+      }
+    }
+  ],
+  "summary_stats": {
+    "pass_rate": 0.8,
+    "fixtures_passed": 4,
+    "fixtures_total": 5,
+    "hallucinations": 0
+  }
+}
