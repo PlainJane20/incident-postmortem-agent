@@ -1,5 +1,7 @@
 # Incident Postmortem Drafting Agent
 
+### *Grounded, blameless incident synthesis that refuses to invent causality*
+
 <div align="center">
 
 [![Python 3.9+](https://img.shields.io/badge/Python_3.9+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
@@ -19,6 +21,40 @@ status update, it's a postmortem — it decides what the org spends the next
 sprint fixing. If the root-cause section is confidently wrong, that's not a
 cosmetic bug, it's actively harmful. This agent is built to be honest about
 uncertainty rather than fluent about it.
+
+## At a glance
+
+| | |
+|---|---|
+| **Problem** | Incident evidence is fragmented, while an unsupported root cause can redirect engineering toward the wrong fix |
+| **Approach** | Join Slack chronology and Jira context, then draft a structured postmortem with explicit uncertainty |
+| **Evaluation** | Five adversarial grounding fixtures; four automated passes and one documented grader failure |
+| **Output** | Blameless timeline, impact, causal chain, actions, owners, and unresolved follow-ups |
+
+## Architecture
+
+```mermaid
+flowchart LR
+    Slack[(Slack incident thread)] --> Thread[slack_thread.py]
+    Jira[(Linked Jira issue)] --> Issue[jira_issue.py]
+    Thread --> Draft[drafter.py<br/>grounded synthesis]
+    Issue --> Draft
+    Draft --> Report[(Markdown postmortem)]
+    Fixtures[eval/fixtures.py] --> Runner[eval/run_eval.py]
+    Runner --> Draft
+    Report --> Grader[eval/grader.py<br/>grounding rubric]
+    Grader --> Results[(Saved eval results)]
+```
+
+## Competencies demonstrated
+
+| Competency | Observable evidence |
+|---|---|
+| Incident governance | Produces a blameless, decision-ready learning artifact |
+| Evidence discipline | Separates stated facts, inferred sequence, and unknown causality |
+| Cross-system integration | Reconciles Slack discussion with linked Jira context |
+| AI evaluation | Tests the exact failure mode that matters: unsupported causal claims |
+| Engineering integrity | Reports the grader defect instead of rerunning until the score appears perfect |
 
 ## Real, live proof — not a scripted demo
 
