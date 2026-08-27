@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" role="img" aria-labelledby="title description">
+  <title id="title">Incident Postmortem Agent</title>
+  <desc id="description">Grounded, blameless postmortems that refuse to invent causality.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#081a2a"/>
+      <stop offset="0.56" stop-color="#12354d"/>
+      <stop offset="1" stop-color="#f97316" stop-opacity=".72"/>
+    </linearGradient>
+    <radialGradient id="glow">
+      <stop offset="0" stop-color="#fb7185" stop-opacity=".26"/>
+      <stop offset="1" stop-color="#fb7185" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#030b13" flood-opacity=".38"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="320" rx="24" fill="url(#bg)"/>
+  <circle cx="1035" cy="55" r="230" fill="url(#glow)"/>
+  <g opacity=".16" fill="none" stroke="#fb7185" stroke-width="1.2" color="#fb7185"><path d="M765 158h54l19-54 32 112 31-74 24 35 27-19h199"/><path d="M765 238h386" opacity=".35"/><g fill="currentColor" stroke="none"><circle cx="819" cy="158" r="5"/><circle cx="838" cy="104" r="5"/><circle cx="870" cy="216" r="5"/><circle cx="901" cy="142" r="5"/><circle cx="952" cy="158" r="5"/></g></g>
+  <g transform="translate(74 68)" filter="url(#shadow)">
+    <rect width="88" height="88" rx="22" fill="#102f45" stroke="#fb7185" stroke-opacity=".58"/>
+    <g fill="none" stroke="#fb7185" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" color="#fb7185"><path d="M22 12h36l14 14v50H22z"/><path d="M58 12v15h14M32 42h30M32 53h22"/><path d="M32 66l7 7 12-15"/></g>
+  </g>
+  <text x="190" y="112" fill="#ffffff" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="44" font-weight="750" letter-spacing="-1">Incident Postmortem Agent</text>
+  <text x="192" y="153" fill="#fb7185" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="15" font-weight="700" letter-spacing="2.5">INCIDENT LEARNING &amp; GOVERNANCE</text>
+  <text x="75" y="225" fill="#dcebf0" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="21">Grounded, blameless postmortems that refuse to invent</text>
+  <text x="75" y="258" fill="#dcebf0" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="21">causality.</text>
+  <g transform="translate(876 168)" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="12" font-weight="700"><g transform="translate(0 0)"><rect width="96" height="42" rx="21" fill="#ffffff" fill-opacity=".1" stroke="#ffffff" stroke-opacity=".2"/><text x="48" y="26" text-anchor="middle" fill="#edf7fa">Slack + Jira</text></g><g transform="translate(106 0)"><rect width="78" height="42" rx="21" fill="#ffffff" fill-opacity=".1" stroke="#ffffff" stroke-opacity=".2"/><text x="39" y="26" text-anchor="middle" fill="#edf7fa">grounded</text></g><g transform="translate(194 0)"><rect width="90" height="42" rx="21" fill="#ffffff" fill-opacity=".1" stroke="#ffffff" stroke-opacity=".2"/><text x="45" y="26" text-anchor="middle" fill="#edf7fa">eval tested</text></g></g>
+</svg>

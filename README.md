@@ -1,3 +1,5 @@
+<img src="docs/incident-postmortem-agent-banner.svg" alt="Incident Postmortem Agent — Incident Learning & Governance" width="100%" />
+
 # Incident Postmortem Drafting Agent
 
 ### *Grounded, blameless incident synthesis that refuses to invent causality*
