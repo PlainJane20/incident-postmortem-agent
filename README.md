@@ -58,17 +58,18 @@ flowchart LR
 | AI evaluation | Tests the exact failure mode that matters: unsupported causal claims |
 | Engineering integrity | Reports the grader defect instead of rerunning until the score appears perfect |
 
-## The competency this is really practicing: adversarial evaluation, not drafting
+## Adversarial evaluation, not drafting
+
+> **The competency this is really practicing:** designing an adversarial
+> hallucination-detection eval suite — a harness specifically built to try
+> to catch the model inventing a root cause, inventing a timestamp, or
+> manufacturing a connection between an incident and an unrelated ticket.
 
 "AI drafts a postmortem" is now table-stakes — incident.io's Scribe,
 Rootly's AI Copilot, PagerDuty's Scribe Agent, and FireHydrant's AI-drafted
-retrospectives all ship that today. The skill this repo is built to
-practice is the harder, less commoditized part: designing an **adversarial
-hallucination-detection eval suite** — a harness specifically built to try
-to catch the model inventing a root cause, inventing a timestamp, or
-manufacturing a connection between an incident and an unrelated ticket. See
-the next section for what that harness actually found — including a bug in
-the harness itself, disclosed rather than hidden.
+retrospectives all ship that today. The harder, less commoditized part is
+the eval harness above. See the next section for what it actually found —
+including a bug in the harness itself, disclosed rather than hidden.
 
 > **Related work in this portfolio:** shares the credential-propagation
 > bug pattern (and fix) with [exec-status-rollup](https://github.com/PlainJane20/exec-status-rollup),
