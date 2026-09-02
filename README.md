@@ -58,24 +58,23 @@ flowchart LR
 | AI evaluation | Tests the exact failure mode that matters: unsupported causal claims |
 | Engineering integrity | Reports the grader defect instead of rerunning until the score appears perfect |
 
-## Named, specifically: what incident.io, Rootly, and PagerDuty don't publish
+## The competency this is really practicing: adversarial evaluation, not drafting
 
-Every major incident platform has shipped AI postmortem drafting in the
-last 12-18 months — incident.io's Scribe, Rootly's AI Copilot, PagerDuty's
-Scribe Agent, FireHydrant's AI-drafted retrospectives. "AI drafts your
-postmortem" is not a gap; it's table stakes now, and none of them are
-short on funding (incident.io alone has raised $96M).
+"AI drafts a postmortem" is now table-stakes — incident.io's Scribe,
+Rootly's AI Copilot, PagerDuty's Scribe Agent, and FireHydrant's AI-drafted
+retrospectives all ship that today. The skill this repo is built to
+practice is the harder, less commoditized part: designing an **adversarial
+hallucination-detection eval suite** — a harness specifically built to try
+to catch the model inventing a root cause, inventing a timestamp, or
+manufacturing a connection between an incident and an unrelated ticket. See
+the next section for what that harness actually found — including a bug in
+the harness itself, disclosed rather than hidden.
 
-What none of their public materials advertise is an **adversarial
-hallucination-detection eval suite** — a harness specifically built to
-try to catch the model inventing a root cause, inventing a timestamp, or
-manufacturing a connection between an incident and an unrelated ticket.
-That's the actual differentiator this repo is betting on: not "drafts a
-postmortem" (solved, commoditized, funded), but "has a harness that
-actively hunts for the one failure mode that makes an AI-drafted
-postmortem dangerous rather than just mediocre." See the next section for
-what that harness found — including a bug in the harness itself, disclosed
-rather than hidden.
+> **Related work in this portfolio:** shares the credential-propagation
+> bug pattern (and fix) with [exec-status-rollup](https://github.com/PlainJane20/exec-status-rollup),
+> and adapted its eval harness structure from [slack-daily-brief](https://github.com/PlainJane20/slack-daily-brief) —
+> see the next section for how copying a working pattern without
+> re-checking its assumptions reproduced a bug already fixed once.
 
 ## Real, live proof — not a scripted demo
 
