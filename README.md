@@ -20,6 +20,25 @@ sprint fixing. If the root-cause section is confidently wrong, that's not a
 cosmetic bug, it's actively harmful. This agent is built to be honest about
 uncertainty rather than fluent about it.
 
+## Named, specifically: what incident.io, Rootly, and PagerDuty don't publish
+
+Every major incident platform has shipped AI postmortem drafting in the
+last 12-18 months — incident.io's Scribe, Rootly's AI Copilot, PagerDuty's
+Scribe Agent, FireHydrant's AI-drafted retrospectives. "AI drafts your
+postmortem" is not a gap; it's table stakes now, and none of them are
+short on funding (incident.io alone has raised $96M).
+
+What none of their public materials advertise is an **adversarial
+hallucination-detection eval suite** — a harness specifically built to
+try to catch the model inventing a root cause, inventing a timestamp, or
+manufacturing a connection between an incident and an unrelated ticket.
+That's the actual differentiator this repo is betting on: not "drafts a
+postmortem" (solved, commoditized, funded), but "has a harness that
+actively hunts for the one failure mode that makes an AI-drafted
+postmortem dangerous rather than just mediocre." See the next section for
+what that harness found — including a bug in the harness itself, disclosed
+rather than hidden.
+
 ## Real, live proof — not a scripted demo
 
 Posted a real 5-message incident thread into a real Slack channel, linked it
