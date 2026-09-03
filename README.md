@@ -60,7 +60,7 @@ flowchart LR
 
 ## Adversarial evaluation, not drafting
 
-> **The competency this is really practicing:** designing an adversarial
+> **Why I built it:** to get real practice designing an adversarial
 > hallucination-detection eval suite — a harness specifically built to try
 > to catch the model inventing a root cause, inventing a timestamp, or
 > manufacturing a connection between an incident and an unrelated ticket.
