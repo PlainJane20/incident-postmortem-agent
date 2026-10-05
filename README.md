@@ -9,7 +9,7 @@
 [![Python 3.9+](https://img.shields.io/badge/Python_3.9+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![Powered by Claude](https://img.shields.io/badge/Powered_by-Claude-D97757?style=for-the-badge&logo=anthropic&logoColor=white)](https://www.anthropic.com/)
 [![Slack + Jira](https://img.shields.io/badge/Slack_%2B_Jira-integrated-0052CC?style=for-the-badge)]()
-[![Eval](https://img.shields.io/badge/Eval-4%2F5_(1_grader_glitch)-eda100?style=for-the-badge)](eval/)
+[![Eval](https://img.shields.io/badge/Eval-4%2F5_(single_run)-eda100?style=for-the-badge)](eval/)
 
 </div>
 
@@ -30,7 +30,7 @@ uncertainty rather than fluent about it.
 |---|---|
 | **Problem** | Incident evidence is fragmented, while an unsupported root cause can redirect engineering toward the wrong fix |
 | **Approach** | Join Slack chronology and Jira context, then draft a structured postmortem with explicit uncertainty |
-| **Evaluation** | Five adversarial grounding fixtures; four automated passes and one documented grader failure |
+| **Evaluation** | Five adversarial grounding fixtures; four automated passes and one fail on a single saved run (the grader returned an empty tool call) |
 | **Output** | Blameless timeline, impact, causal chain, actions, owners, and unresolved follow-ups |
 
 ## Architecture
@@ -56,14 +56,16 @@ flowchart LR
 | Evidence discipline | Separates stated facts, inferred sequence, and unknown causality |
 | Cross-system integration | Reconciles Slack discussion with linked Jira context |
 | AI evaluation | Tests the exact failure mode that matters: unsupported causal claims |
-| Engineering integrity | Reports the grader defect instead of rerunning until the score appears perfect |
+| Engineering integrity | Reports the grader defect instead of silently rerunning until the score appears perfect |
 
 ## Adversarial evaluation, not drafting
 
 > **Why I built it:** to get real practice designing an adversarial
-> hallucination-detection eval suite — a harness specifically built to try
-> to catch the model inventing a root cause, inventing a timestamp, or
-> manufacturing a connection between an incident and an unrelated ticket.
+> hallucination-detection eval suite. The five fixtures target invented
+> root causes, invented owners/action items, invented impact, and treating a
+> Jira ticket as evidence of a cause. There is **no fixture that specifically
+> tests invented timestamps** (the live run below showed it avoiding them,
+> but that was not an eval).
 
 "AI drafts a postmortem" is now table-stakes — incident.io's Scribe,
 Rootly's AI Copilot, PagerDuty's Scribe Agent, and FireHydrant's AI-drafted
@@ -92,27 +94,56 @@ worth noting about what it did *unprompted*:
    precise timestamps to fill the Timeline section.
 3. **Noticed the linked Jira ticket was unrelated to the incident** and said
    so explicitly in Open Follow-ups instead of forcing a connection because
-   a ticket was provided. Not something I tested for in the eval fixtures —
-   the grounding discipline generalized on its own.
+   a ticket was provided. The eval's fifth fixture tests a related
+   Jira-grounding case (a ticket that exists but states no cause must not be
+   treated as evidence of one). No fixture tests a fully *unrelated* ticket,
+   so this live observation is a single anecdote, not a measured result.
 
 ## The eval harness caught something about itself, not just the agent
 
 5 fixtures targeting the grounding failure mode specifically (root cause
 traceable vs. never established, unassigned needs vs. committed action
-items, stated vs. unstated impact). Result: **4/5 passed, 0 hallucinations
-detected** — but the 5th "fail" is worth being precise about. Manually
-reading the raw output for `root_cause_never_established` shows the agent
-was exemplary: it correctly refused to invent a cause. The grader itself
-returned an empty, malformed tool call that verdict-defaulted to "fail."
+items, stated vs. unstated impact, Jira context not substituting for thread
+facts). The saved result (`eval/results/run_2026-08-26T00-45-52.json`) is a
+**single run**: 4/5 passed. The 4 passing fixtures each had zero
+hallucinations flagged; the failing one is described below.
 
-That's the 4th time this exact failure mode — a forced tool schema not
-guaranteeing the model actually populates every required field — has shown
-up somewhere in this portfolio (`exec-status-rollup`, `slack-daily-agent`,
-`spec-review-agent`, now here, and now in the *judge* rather than the agent
-under test). The fix each time is the same: never trust structured LLM
-output to have the shape the schema promised without validating it. This
-time it means an honest 80% pass rate with a manually-verified explanation,
-rather than re-running until the number looks clean.
+The 5th fixture, `root_cause_never_established`, was recorded as a fail
+with empty `matched_expected` and `hallucinations` lists and the reasoning
+`(missing from grader output)`. That is the signature of the judge returning
+an empty tool call: `_normalize` fills in `verdict` as `"fail"` by default.
+So the fail reflects a grader output problem, not a judged failure of the
+agent. I read the raw output manually and it correctly declined to invent a
+cause, but that is my manual reading of one run, not an automated result,
+and the 4/5 figure was never re-run to confirm. The grader now retries once
+on an empty/verdict-less tool call (covered by offline unit tests with a
+stub client); this has not been re-run against the live API, so there is no
+new eval result. If the retry also comes back empty, the conservative
+`"fail"` default still applies.
+
+That is the same failure mode seen elsewhere in this portfolio
+(`exec-status-rollup`, `slack-daily-agent`, `spec-review-agent`): a forced
+tool schema does not guarantee the model populates required fields, here in
+the *judge* rather than the agent under test. Note that defaulting to
+`"fail"` is a safe-side choice but it conflates "judge broke" with "agent
+failed", which is why the retry and this disclosure exist.
+
+## Known limitations
+
+- **Tiny eval:** 5 synthetic fixtures, one saved run, no repeated runs or
+  variance estimate. 4/5 is not a reliable pass rate.
+- **Judge is an LLM:** `must_not_mention` is passed to the judge in its
+  prompt and judged by the LLM; it is not matched deterministically (no
+  string/regex check). The same model family drafts and judges.
+- **Grader failures are indistinguishable from fails** in the saved
+  verdict, apart from the `(missing from grader output)` reasoning string.
+- **Untested behaviours:** invented timestamps (no fixture), a fully
+  unrelated Jira ticket (live anecdote only), and multi-thread or long
+  incidents.
+- **Unit tests cover only the grader retry** (offline, stubbed). The
+  drafter, Slack/Jira fetching and eval runner have no automated tests.
+- **Live proof is one incident:** the sample output is a single
+  hand-posted 5-message thread.
 
 ## A second real bug, from copying a working pattern into a different context
 
@@ -133,6 +164,7 @@ python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env   # or leave blank to reuse sibling repos' credentials
+pip install pytest && python -m pytest tests/ -v   # offline grader-retry tests
 ```
 
 ## Usage

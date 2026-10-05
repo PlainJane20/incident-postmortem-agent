@@ -66,7 +66,7 @@ Rules:
 """
 
 
-def grade_postmortem(fixture: dict, report: str, api_key: str, judge_model: str = "claude-sonnet-5") -> dict:
+def grade_postmortem(fixture: dict, report: str, api_key: str, judge_model: str = "claude-sonnet-5", client=None) -> dict:
     """
     api_key is passed explicitly, not read from os.environ — this repo's
     config.py resolves credentials via a sibling-repo fallback chain into a
@@ -76,7 +76,7 @@ def grade_postmortem(fixture: dict, report: str, api_key: str, judge_model: str 
     slack-daily-agent (where os.environ IS populated directly, no fallback
     chain) without checking whether the same assumption held here.
     """
-    client = anthropic.Anthropic(api_key=api_key)
+    client = client or anthropic.Anthropic(api_key=api_key)
 
     expects = fixture["expects"]
     rubric_lines = []
@@ -101,18 +101,26 @@ AGENT'S POSTMORTEM TO GRADE:
 {report}
 """
 
-    resp = client.messages.create(
-        model=judge_model,
-        max_tokens=2048,
-        system=GRADER_SYSTEM,
-        tools=[GRADE_TOOL],
-        tool_choice={"type": "tool", "name": "record_grade"},
-        messages=[{"role": "user", "content": user_msg}],
-    )
-
+    # Retry once if the judge returns an empty/incomplete tool call (no
+    # verdict). Without this, _normalize would default the verdict to "fail".
+    for attempt in range(2):
+        resp = client.messages.create(
+            model=judge_model,
+            max_tokens=2048,
+            system=GRADER_SYSTEM,
+            tools=[GRADE_TOOL],
+            tool_choice={"type": "tool", "name": "record_grade"},
+            messages=[{"role": "user", "content": user_msg}],
+        )
+        for block in resp.content:
+            if block.type == "tool_use" and block.name == "record_grade":
+                if isinstance(block.input, dict) and block.input.get("verdict") in ("pass", "fail"):
+                    return _normalize(block.input)
+                break
+    # Still unusable after the retry: fall through to the conservative default.
     for block in resp.content:
         if block.type == "tool_use" and block.name == "record_grade":
-            return _normalize(block.input)
+            return _normalize(block.input if isinstance(block.input, dict) else {})
     raise RuntimeError("Grader did not return a tool_use block")
 
 
