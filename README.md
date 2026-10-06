@@ -2,7 +2,7 @@
 
 # Incident Postmortem Drafting Agent
 
-### *Grounded, blameless incident synthesis that refuses to invent causality*
+### *Blameless incident synthesis, prompted to refuse to invent causality*
 
 <div align="center">
 
@@ -15,7 +15,8 @@
 
 Drafts a structured, blameless postmortem from a Slack incident thread and
 its linked Jira ticket — timeline, impact, root cause, action items, and
-open follow-ups, with the strictest grounding discipline in this portfolio:
+open follow-ups, with the strictest grounding prompt in this portfolio (enforced by
+the prompt and checked offline by the eval, not verified at generation time):
 **an invented root cause is worse than an honest "not established."**
 
 **Why this exists:** the highest-stakes artifact a TPM produces isn't a
@@ -41,6 +42,7 @@ uncertainty rather than fluent about it.
 - **Deterministic vs model-driven:** Fetching and formatting the inputs, and the output step, are deterministic. The whole document, including the grounding discipline, rests on one model call; nothing in code verifies that the draft is faithful to the thread.
 - **Human gate:** None in the tool; a person is expected to review the draft before using it.
 - **Honest limit:** Grounding is enforced only by the system prompt and checked offline by the five-fixture eval, so an unsupported claim in a live draft would not be caught by the tool.
+- **Tracing:** optional OpenTelemetry spans for `draft_postmortem` and the eval grader are described in [docs/TRACING.md](docs/TRACING.md); a no-op unless configured.
 
 ## Architecture
 
