@@ -6,7 +6,13 @@ forced-schema field to be the type it's supposed to be just because the
 schema said so.
 """
 
+import sys
+from pathlib import Path
+
 import anthropic
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+import tracing  # noqa: E402
 
 GRADE_TOOL = {
     "name": "record_grade",
@@ -78,6 +84,15 @@ def grade_postmortem(fixture: dict, report: str, api_key: str, judge_model: str 
     """
     client = client or anthropic.Anthropic(api_key=api_key)
 
+    # Spans carry only the fixture id, model name, attempt number and verdict.
+    with tracing.span("grade", fixture_id=fixture.get("id"), judge_model=judge_model) as root:
+        grade = _grade(fixture, report, judge_model, client, root)
+        tracing.set_attrs(root, verdict=grade["verdict"],
+                          hallucination_count=len(grade["hallucinations"]))
+        return grade
+
+
+def _grade(fixture, report, judge_model, client, root) -> dict:
     expects = fixture["expects"]
     rubric_lines = []
     for key, value in expects.items():
@@ -103,20 +118,29 @@ AGENT'S POSTMORTEM TO GRADE:
 
     # Retry once if the judge returns an empty/incomplete tool call (no
     # verdict). Without this, _normalize would default the verdict to "fail".
+    attempts_made = 0
     for attempt in range(2):
-        resp = client.messages.create(
-            model=judge_model,
-            max_tokens=2048,
-            system=GRADER_SYSTEM,
-            tools=[GRADE_TOOL],
-            tool_choice={"type": "tool", "name": "record_grade"},
-            messages=[{"role": "user", "content": user_msg}],
-        )
-        for block in resp.content:
-            if block.type == "tool_use" and block.name == "record_grade":
-                if isinstance(block.input, dict) and block.input.get("verdict") in ("pass", "fail"):
-                    return _normalize(block.input)
-                break
+        attempts_made = attempt + 1
+        with tracing.span("grade.attempt", attempt=attempts_made) as asp:
+            resp = client.messages.create(
+                model=judge_model,
+                max_tokens=2048,
+                system=GRADER_SYSTEM,
+                tools=[GRADE_TOOL],
+                tool_choice={"type": "tool", "name": "record_grade"},
+                messages=[{"role": "user", "content": user_msg}],
+            )
+            verdict = "empty"
+            for block in resp.content:
+                if block.type == "tool_use" and block.name == "record_grade":
+                    if isinstance(block.input, dict) and block.input.get("verdict") in ("pass", "fail"):
+                        verdict = block.input["verdict"]
+                    break
+            tracing.set_attrs(asp, verdict=verdict)
+        if verdict != "empty":
+            tracing.set_attrs(root, attempts=attempts_made, retried=attempts_made > 1)
+            return _normalize(block.input)
+    tracing.set_attrs(root, attempts=attempts_made, retried=True, defaulted_to_fail=True)
     # Still unusable after the retry: fall through to the conservative default.
     for block in resp.content:
         if block.type == "tool_use" and block.name == "record_grade":

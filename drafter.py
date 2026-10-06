@@ -9,9 +9,12 @@ artifact in the whole series.
 """
 
 import sys
+import time
 from pathlib import Path
 
 import anthropic
+
+import tracing
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "agent-control-tower"))
 try:
@@ -79,17 +82,34 @@ def _make_client(api_key: str, daily_budget: float = None):
 
 def draft_postmortem(thread_text: str, jira_context: str, model: str, api_key: str,
                       daily_budget: float = None) -> str:
-    client = _make_client(api_key, daily_budget)
-
     user_content = f"SLACK THREAD:\n{thread_text}\n"
     if jira_context:
         user_content += f"\nLINKED JIRA TICKET:\n{jira_context}\n"
 
-    msg = client.messages.create(
-        model=model,
-        max_tokens=2048,
-        system=SYSTEM_PROMPT,
-        messages=[{"role": "user", "content": user_content}],
-    )
-    text_blocks = [b.text for b in msg.content if b.type == "text"]
-    return "\n".join(text_blocks)
+    # Span attributes are sizes, counts and enums only: never the thread,
+    # the Jira content, or the draft.
+    with tracing.span("draft", model=model, input_chars=len(user_content),
+                      jira_included=bool(jira_context)) as sp:
+        started = time.monotonic()
+        try:
+            client = _make_client(api_key, daily_budget)
+            msg = client.messages.create(
+                model=model,
+                max_tokens=2048,
+                system=SYSTEM_PROMPT,
+                messages=[{"role": "user", "content": user_content}],
+            )
+            text_blocks = [b.text for b in msg.content if b.type == "text"]
+            result = "\n".join(text_blocks)
+        except BaseException:
+            tracing.set_attrs(sp, success=False,
+                              duration_ms=round((time.monotonic() - started) * 1000, 1))
+            raise
+        tracing.set_attrs(
+            sp,
+            success=True,
+            section_count=sum(1 for ln in result.splitlines() if ln.startswith("## ")),
+            output_chars=len(result),
+            duration_ms=round((time.monotonic() - started) * 1000, 1),
+        )
+        return result
