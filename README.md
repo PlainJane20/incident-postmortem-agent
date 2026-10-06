@@ -30,8 +30,17 @@ uncertainty rather than fluent about it.
 |---|---|
 | **Problem** | Incident evidence is fragmented, while an unsupported root cause can redirect engineering toward the wrong fix |
 | **Approach** | Join Slack chronology and Jira context, then draft a structured postmortem with explicit uncertainty |
+| **Pattern** | Not an agent: fetch inputs, one Claude call, output (see [Architecture pattern](#architecture-pattern)) |
 | **Evaluation** | Five adversarial grounding fixtures; four automated passes and one fail on a single saved run (the grader returned an empty tool call) |
 | **Output** | Blameless timeline, impact, causal chain, actions, owners, and unresolved follow-ups |
+
+## Architecture pattern
+
+**Not an agent: a single-call drafting pipeline.** `run_postmortem.py` fetches the Slack thread (`slack_thread.py`) and optional Jira issue (`jira_issue.py`), `drafter.draft_postmortem` makes one Claude call with a fixed grounding prompt, and the text is printed or saved. There is no loop, tool use, planning, state or second model pass, so "agent" in the repo name describes a task-specific tool, not an agentic architecture. (The `eval/` grader is test tooling and is not part of the runtime path.)
+
+- **Deterministic vs model-driven:** Fetching and formatting the inputs, and the output step, are deterministic. The whole document, including the grounding discipline, rests on one model call; nothing in code verifies that the draft is faithful to the thread.
+- **Human gate:** None in the tool; a person is expected to review the draft before using it.
+- **Honest limit:** Grounding is enforced only by the system prompt and checked offline by the five-fixture eval, so an unsupported claim in a live draft would not be caught by the tool.
 
 ## Architecture
 
