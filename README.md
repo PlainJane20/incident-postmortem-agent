@@ -153,8 +153,12 @@ failed", which is why the retry and this disclosure exist.
 - **Untested behaviours:** invented timestamps (no fixture), a fully
   unrelated Jira ticket (live anecdote only), and multi-thread or long
   incidents.
-- **Unit tests cover only the grader retry** (offline, stubbed). The
-  drafter, Slack/Jira fetching and eval runner have no automated tests.
+- **13 offline unit tests** (`tests/`, stubbed clients, no network or keys): 3 cover the
+  grader retry (`test_grader.py`) and 10 cover the optional OpenTelemetry tracing
+  (`test_tracing.py`: span attributes, no-op by default, no sensitive strings in spans, outputs
+  unchanged). Without `opentelemetry-sdk` installed the tracing module is skipped (3 passed, 1
+  skipped). The drafter's prompt/output quality, Slack/Jira fetching and the eval runner have no
+  automated tests.
 - **Live proof is one incident:** the sample output is a single
   hand-posted 5-message thread.
 
@@ -177,7 +181,7 @@ python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env   # or leave blank to reuse sibling repos' credentials
-pip install pytest && python -m pytest tests/ -v   # offline grader-retry tests
+pip install -r requirements-dev.txt && python -m pytest tests/ -v   # 13 offline tests (grader retry + tracing)
 ```
 
 ## Usage
