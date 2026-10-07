@@ -10,6 +10,8 @@
 [![Powered by Claude](https://img.shields.io/badge/Powered_by-Claude-D97757?style=for-the-badge&logo=anthropic&logoColor=white)](https://www.anthropic.com/)
 [![Slack + Jira](https://img.shields.io/badge/Slack_%2B_Jira-integrated-0052CC?style=for-the-badge)]()
 [![Eval](https://img.shields.io/badge/Eval-4%2F5_(single_run)-eda100?style=for-the-badge)](eval/)
+[![CI](https://img.shields.io/github/actions/workflow/status/PlainJane20/incident-postmortem-agent/ci.yml?branch=main&style=for-the-badge&label=CI)](https://github.com/PlainJane20/incident-postmortem-agent/actions/workflows/ci.yml)
+[![MIT License](https://img.shields.io/badge/License-MIT-6b7280?style=for-the-badge)](LICENSE)
 
 </div>
 
@@ -188,6 +190,10 @@ python run_postmortem.py --channel incident-room --thread-ts <ts> --jira PGMAUTO
 python eval/run_eval.py --save
 python eval/run_eval.py --compare eval/results/run_<timestamp>.json
 ```
+
+## License
+
+MIT — see [LICENSE](LICENSE).
 
 ## Contact
 
